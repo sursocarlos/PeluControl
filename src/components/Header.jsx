@@ -35,6 +35,9 @@ function Header() {
   // esto lo usaremos para mostrar o no lo datos en pantalla dependiendo de sii esta "cargando" los datos o no
   const [cargando, setCargando] = useState(true);
 
+  // Creamos una constante booleana para que el usuario pueda decidir si simular el error o no
+  const [error, setError] = useState(false);
+
   // Creamos una constante filtraClientes
   // Esta constante usa el metodo filter para iterar sobre el array clientes
   // Y crear un nuevo array con los clientes que pasen el filtro que nosotros pondremos.
@@ -80,14 +83,38 @@ function Header() {
     }, 2000);
   }, []);
 
+  // I  D  E  A       O  R  I  G  I  N  A  L
+  //Ahora para mostrar el error o no, vamos a crear una constante que calcule un numero del 1 al 10.
+  //Si el numero generado es par mostraremos la pagina (lista de clientes), si es impar se mostrara un "error para cargar los datos".
+  /*
+  useEffect(()=>{
+    const numero = Math.floor(Math.random() * 10) + 1;
+    if(numero % 2 === 0){
+      setError(false);
+    }else{
+      setError(true);
+    }
+  },[])
+  */
+
   //Usamos un if para mostrar la lista de clientes o no dependiendo de si la propiedad cargando es true o no
   if (cargando) {
     return (
       <div>
         <h1>Cargando clientes...</h1>
+        {/* Creamos un boton para poder simular el error de cargar datos */}
+        <button
+          onClick={() => {
+            setError(true);
+            setCargando(false);
+          }}
+        >
+          Simular error
+        </button>
       </div>
     );
-  } else {
+  }
+  if (error == false) {
     return (
       <div>
         <h1>PeluControl</h1>
@@ -170,7 +197,7 @@ function Header() {
         {/*
         Creamos los botones para la paginación. Estos botones nos permiten navegar entre las disintas paginas (paginaActual).
         Simplemente suman o restan 1 a la página actual usando setPaginaActual.
-      */}
+        */}
         <button
           // Usamos disabled para deshabilitar el boton cuando estemos en la primera pagina
           disabled={paginaActual === 1}
@@ -185,6 +212,12 @@ function Header() {
         >
           Siguiente
         </button>
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <h1 style={{color: "red"}}>Error al cargar los datos</h1>
       </div>
     );
   }
