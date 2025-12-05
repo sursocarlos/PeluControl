@@ -1,5 +1,23 @@
 //Carlos Flores Hernández DAW 2 - PROYECTO DESARROLLO WEW EN ENTORNO CLIENTE
 import { useEffect, useState } from "react";
+// Importamos las librerías necesarias para gestionar el formulario y las validaciones
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+// Definimos el esquema de validación con Yup fuera del componente.
+// Aquí establecemos las reglas: nombre obligatorio y teléfono numérico con longitud mínima.
+const schema = yup.object().shape({
+  nombre: yup
+    .string()
+    .required("El nombre es obligatorio")
+    .min(3, "El nombre debe tener al menos 3 caracteres"),
+  telefono: yup
+    .string()
+    .required("El teléfono es obligatorio")
+    .matches(/^[0-9]+$/, "El teléfono solo debe contener números")
+    .min(9, "El teléfono debe tener al menos 9 dígitos"),
+});
 
 function Header() {
   //Creamos un array clientesIniciales donde meteremos los clientes
@@ -37,6 +55,44 @@ function Header() {
 
   // Creamos una constante booleana para que el usuario pueda decidir si simular el error o no
   const [error, setError] = useState(false);
+
+  // Usamos useState para controlar si mostramos o no el formulario de añadir cliente
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  // Configuramos useForm para manejar el formulario.
+  // Usamos el resolver de Yup para integrar nuestras reglas de validación automáticamente.
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  // Creamos la función onSubmit que se ejecutará cuando el formulario sea válido.
+  // Recibe los datos del formulario (nombre y telefono)
+  const onSubmit = (data) => {
+    // Calculamos un nuevo ID buscando el máximo actual y sumándole 1 para evitar duplicados
+    const nuevoId =
+      clientes.length > 0 ? Math.max(...clientes.map((c) => c.id)) + 1 : 1;
+
+    // Creamos el objeto del nuevo cliente con los datos recibidos
+    const nuevoCliente = {
+      id: nuevoId,
+      nombre: data.nombre,
+      telefono: data.telefono,
+    };
+
+    // Actualizamos el estado de clientes añadiendo el nuevo al final del array
+    setClientes([...clientes, nuevoCliente]);
+
+    // Usamos el método reset para limpiar los campos del formulario una vez guardado
+    reset();
+    
+    // Ocultamos el formulario cambiando el estado a false
+    setMostrarFormulario(false);
+  };
 
   // Creamos una constante filtraClientes
   // Esta constante usa el metodo filter para iterar sobre el array clientes
@@ -118,6 +174,58 @@ function Header() {
     return (
       <div>
         <h1>PeluControl</h1>
+
+        {/* Sección para añadir clientes nuevos */}
+        <div>
+          {/* Usamos un ternario para cambiar el botón dependiendo de si el formulario es visible o no */}
+          {!mostrarFormulario ? (
+            <button onClick={() => setMostrarFormulario(true)}>
+              Añadir cliente
+            </button>
+          ) : (
+            <button onClick={() => setMostrarFormulario(false)}>
+              Cancelar
+            </button>
+          )}
+
+          {/* Si mostrarFormulario es true, renderizamos el formulario */}
+          {mostrarFormulario && (
+            // Usamos handleSubmit de useForm para manejar el envío
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <h3>Nuevo Cliente</h3>
+              
+              <div>
+                {/* Usamos la función register para conectar el input 'nombre' con React Hook Form */}
+                <input
+                  type="text"
+                  placeholder="Nombre completo"
+                  {...register("nombre")}
+                />
+                {/* Si hay errores en el nombre, mostramos el mensaje de error definido en el esquema */}
+                {/* Usamos color red para que destaque el error igual que el de cargar datos */}
+                {errors.nombre && <p style={{ color: "red" }}>{errors.nombre.message}</p>}
+              </div>
+              <br />
+
+              <div>
+                {/* Usamos la función register para conectar el input 'telefono' */}
+                <input
+                  type="text"
+                  placeholder="Teléfono"
+                  {...register("telefono")}
+                />
+                {/* Si hay errores en el teléfono, los mostramos aquí */}
+                {errors.telefono && <p style={{ color: "red" }}>{errors.telefono.message}</p>}
+              </div>
+              <br />
+
+              <button type="submit">Guardar cliente</button>
+            </form>
+          )}
+        </div>
+
+        <br />
+
         {/* Mostramos la lista completa de clientes */}
         {/* Usamos map para recorrer el array clientes y por cada cliente mostramos su nombre y telefono */}
         <h2>Lista completa de clientes:</h2>
